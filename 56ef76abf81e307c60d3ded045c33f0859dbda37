@@ -1,3 +1,5 @@
+- had to move some logic due to lack of fragment access
+- tested the bug as well as the broadcaste receiver
 - webkit proxy system properties hackable?
 - good job on biometrics (check on some of the issues I had previously)
 - basic package integrity checks to avoid root (still valid in open-source?)
