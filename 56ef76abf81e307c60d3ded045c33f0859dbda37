@@ -1,5 +1,3 @@
-development notes
-
 - webkit proxy system properties hackable?
 - good job on biometrics (check on some of the issues I had previously)
 - basic package integrity checks to avoid root (still valid in open-source?)
