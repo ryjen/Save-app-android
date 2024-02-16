@@ -1,6 +1,5 @@
 package net.opendasharchive.openarchive.services.gdrive
 
-import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
@@ -88,63 +87,56 @@ class GDriveFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE_GOOGLE_AUTH) {
-            when (resultCode) {
-                RESULT_OK -> {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val space = Space(Space.Type.GDRIVE)
-                        // we don't really know the host here, that's hidden by Drive Api
-                        space.host = "what's the host of google drive? :shrug:"
-                        data?.let {
-                            val result = Auth.GoogleSignInApi.getSignInResultFromIntent(it)
-                            if (result?.isSuccess == true) {
-                                result.signInAccount?.let { account ->
-                                    space.displayname = account.email ?: ""
-                                }
-                            }
-                        }
 
-                        if (GDriveConduit.permissionsGranted(requireContext())) {
-                            space.save()
-                            Space.current = space
+            if (data == null) {
+                authFailed("internal error")
+                return
+            }
 
-                            CleanInsightsManager.getConsent(requireActivity()) {
-                                CleanInsightsManager.measureEvent(
-                                    "backend",
-                                    "new",
-                                    Space.Type.GDRIVE.friendlyName
-                                )
-                            }
-
-                            MainScope().launch {
-                                setFragmentResult(RESP_AUTHENTICATED, bundleOf())
-                            }
-                        } else {
-                            authFailed(
-                                getString(
-                                    R.string.gdrive_auth_insufficient_permissions,
-                                    getString(R.string.app_name),
-                                    getString(R.string.gdrive)
-                                )
-                            )
-                        }
-                    }
+            CoroutineScope(Dispatchers.IO).launch {
+                val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data)
+                if (result?.isSuccess == true) {
+                    authSuccess(result.signInAccount?.email)
+                } else {
+                    authFailed(
+                        getString(
+                            R.string.gdrive_auth_insufficient_permissions,
+                            getString(R.string.app_name),
+                            getString(R.string.gdrive)
+                        )
+                    )
                 }
 
-                else -> authFailed()
             }
         }
     }
 
-    private fun authFailed() {
-        authFailed(null)
+    private fun authSuccess(email: String?) {
+
+        val space = Space(Space.Type.GDRIVE)
+
+        space.displayname = email ?: ""
+
+        space.save()
+        Space.current = space
+
+        CleanInsightsManager.getConsent(requireActivity()) {
+            CleanInsightsManager.measureEvent(
+                "backend",
+                "new",
+                Space.Type.GDRIVE.friendlyName
+            )
+        }
+
+        MainScope().launch {
+            setFragmentResult(GDriveFragment.RESP_AUTHENTICATED, bundleOf())
+        }
     }
 
     private fun authFailed(errorMessage: String?) {
         MainScope().launch {
-            errorMessage?.let {
-                mBinding.error.text = errorMessage
-                mBinding.error.visibility = View.VISIBLE
-            }
+            mBinding.error.text = errorMessage ?: getString(R.string.error)
+            mBinding.error.visibility = View.VISIBLE
             mBinding.btBack.isEnabled = true
             mBinding.btAuthenticate.isEnabled = true
         }
