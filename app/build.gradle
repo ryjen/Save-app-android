@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply from : '../dependencies.gradle'
-apply from : '../config.gradle'
+apply from: '../dependencies.gradle'
+apply from: '../config.gradle'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 def getDropboxKey() {
@@ -76,7 +76,7 @@ android {
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
 
     implementation "androidx.core:core-ktx:1.12.0"
     implementation "androidx.appcompat:appcompat:1.6.1"
@@ -84,21 +84,21 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:2.1.4"
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.2"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.7.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
     implementation 'androidx.preference:preference-ktx:1.2.1'
-    implementation "androidx.work:work-runtime-ktx:2.8.1"
+    implementation "androidx.work:work-runtime-ktx:2.9.0"
 
     implementation "com.github.satyan:sugar:1.5"
 
-    implementation "com.google.code.gson:gson:2.9.1"
+    implementation "com.google.code.gson:gson:2.10"
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
     implementation "com.dropbox.core:dropbox-core-sdk:5.4.4"
 
     // adding web dav support: https://github.com/thegrizzlylabs/sardine-android'
     implementation "com.github.guardianproject:sardine-android:89f7eae512"
 
-    implementation "com.google.android.material:material:1.10.0"
+    implementation "com.google.android.material:material:1.11.0"
 
     implementation "com.github.bumptech.glide:glide:$versions.glide"
     annotationProcessor "com.github.bumptech.glide:compiler:$versions.glide"
@@ -115,7 +115,7 @@ dependencies {
     implementation "info.guardianproject.netcipher:netcipher:2.2.0-alpha"
 
     //from here: https://github.com/guardianproject/proofmode
-    implementation ("org.proofmode:android-libproofmode:1.0.26") {
+    implementation("org.proofmode:android-libproofmode:1.0.26") {
 
         transitive = false
 
