@@ -1,24 +1,17 @@
 package net.opendasharchive.openarchive.features.main
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
-import net.opendasharchive.openarchive.R
 import net.opendasharchive.openarchive.databinding.FragmentMainMediaBinding
 import net.opendasharchive.openarchive.databinding.ViewSectionBinding
 import net.opendasharchive.openarchive.db.Collection
 import net.opendasharchive.openarchive.db.Media
 import net.opendasharchive.openarchive.db.MediaAdapter
 import net.opendasharchive.openarchive.db.MediaViewHolder
-import net.opendasharchive.openarchive.upload.BroadcastManager
-import net.opendasharchive.openarchive.util.AlertHelper
 import net.opendasharchive.openarchive.util.extensions.toggle
 import kotlin.collections.set
 
@@ -46,59 +39,6 @@ class MainMediaFragment : Fragment() {
 
     private lateinit var mBinding: FragmentMainMediaBinding
 
-    private val mMessageReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = BroadcastManager.getAction(intent)
-            val mediaId = action?.mediaId ?: return
-
-            if (mediaId < 0) return
-
-            when (action) {
-                BroadcastManager.Action.Change -> {
-                    updateItem(mediaId)
-                }
-
-                BroadcastManager.Action.Delete -> {
-                    refresh()
-                }
-            }
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        BroadcastManager.register(requireContext(), mMessageReceiver)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        BroadcastManager.unregister(requireContext(), mMessageReceiver)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.menu_delete -> {
-                AlertHelper.show(
-                    requireContext(), R.string.confirm_remove_media, null, buttons = listOf(
-                        AlertHelper.positiveButton(R.string.remove) { _, _ ->
-                            deleteSelected()
-                        },
-                        AlertHelper.negativeButton()
-                    )
-                )
-                true
-            }
-
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -123,8 +63,8 @@ class MainMediaFragment : Fragment() {
         mCollections = ArrayList(Collection.getByProject(mProjectId))
 
         // Remove all sections, which' collections don't exist anymore.
-        val toDelete = mAdapters.keys.filter { id ->
-            mCollections.firstOrNull { it.id == id } == null
+        val toDelete = mAdapters.keys.filter {
+                id -> mCollections.firstOrNull { it.id == id } == null
         }.toMutableList()
 
         mCollections.forEach { collection ->
@@ -142,7 +82,8 @@ class MainMediaFragment : Fragment() {
             if (adapter != null) {
                 adapter.updateData(media)
                 holder?.setHeader(collection, media)
-            } else if (media.isNotEmpty()) {
+            }
+            else if (media.isNotEmpty()) {
                 val view = createMediaList(collection, media)
 
                 mBinding.mediaContainer.addView(view, 0)
@@ -153,9 +94,7 @@ class MainMediaFragment : Fragment() {
         // while adding images.
         deleteCollections(toDelete, false)
 
-        if (::mBinding.isInitialized) {
-            mBinding.addMediaHint.toggle(mCollections.isEmpty())
-        }
+        mBinding.addMediaHint.toggle(mCollections.isEmpty())
     }
 
     fun deleteSelected() {
@@ -167,7 +106,8 @@ class MainMediaFragment : Fragment() {
 
                 if (media.isEmpty()) {
                     toDelete.add(collection.id)
-                } else {
+                }
+                else {
                     mSection[collection.id]?.setHeader(collection, media)
                 }
             }

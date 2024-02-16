@@ -2,6 +2,8 @@ package net.opendasharchive.openarchive.features.main
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,7 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager.widget.ViewPager
 import com.esafirm.imagepicker.features.ImagePickerLauncher
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.snackbar.Snackbar.SnackbarLayout
@@ -31,12 +33,13 @@ import net.opendasharchive.openarchive.databinding.ActivityMainBinding
 import net.opendasharchive.openarchive.db.Project
 import net.opendasharchive.openarchive.db.Space
 import net.opendasharchive.openarchive.features.core.BaseActivity
-import net.opendasharchive.openarchive.features.folders.AddFolderActivity
 import net.opendasharchive.openarchive.features.media.AddMediaDialogFragment
 import net.opendasharchive.openarchive.features.media.Picker
 import net.opendasharchive.openarchive.features.media.PreviewActivity
 import net.opendasharchive.openarchive.features.onboarding.Onboarding23Activity
 import net.opendasharchive.openarchive.features.onboarding.SpaceSetupActivity
+import net.opendasharchive.openarchive.features.folders.AddFolderActivity
+import net.opendasharchive.openarchive.upload.BroadcastManager
 import net.opendasharchive.openarchive.upload.UploadManagerActivity
 import net.opendasharchive.openarchive.upload.UploadService
 import net.opendasharchive.openarchive.util.AlertHelper
@@ -78,6 +81,31 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
             updateBottomNavbar(value)
         }
 
+    private val mCurrentFragment
+        get() = mPagerAdapter.getRegisteredMediaFragment(mCurrentItem)
+
+    private val mMessageReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            if (mCurrentItem >= mPagerAdapter.settingsIndex) return
+
+            val action = BroadcastManager.getAction(intent)
+            val mediaId = action?.mediaId ?: return
+
+            if (mediaId < 0) return
+
+            when (action) {
+                BroadcastManager.Action.Change -> {
+                    mCurrentFragment?.updateItem(mediaId)
+                }
+
+                BroadcastManager.Action.Delete -> {
+                    mCurrentFragment?.refresh()
+                }
+            }
+        }
+    }
+
     private val mNewFolderResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
@@ -112,10 +140,13 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
             startActivity(Intent(this, UploadManagerActivity::class.java))
         }
 
-        mPagerAdapter = ProjectAdapter(supportFragmentManager, lifecycle)
+        mPagerAdapter = ProjectAdapter(supportFragmentManager)
         mBinding.pager.adapter = mPagerAdapter
 
-        mBinding.pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        // final int pageMargin = (int) TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 8, getResources() .getDisplayMetrics());
+        mBinding.pager.pageMargin = 0
+
+        mBinding.pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int, positionOffset: Float,
                 positionOffsetPixels: Int
@@ -192,17 +223,11 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
                 true
             }
 
-            supportFragmentManager.setFragmentResultListener(
-                AddMediaDialogFragment.RESP_PHOTO_GALLERY,
-                this
-            ) { _, _ ->
-                addClicked()
+            supportFragmentManager.setFragmentResultListener(AddMediaDialogFragment.RESP_PHOTO_GALLERY, this) {
+                _, _ -> addClicked()
             }
-            supportFragmentManager.setFragmentResultListener(
-                AddMediaDialogFragment.RESP_FILES,
-                this
-            ) { _, _ ->
-                addClicked(typeFiles = true)
+            supportFragmentManager.setFragmentResultListener(AddMediaDialogFragment.RESP_FILES, this) {
+                _, _ -> addClicked(typeFiles = true)
             }
         }
     }
@@ -221,9 +246,14 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
     override fun onResume() {
         super.onResume()
 
+        BroadcastManager.register(this, mMessageReceiver)
+
         refreshSpace()
 
-        mCurrentItem = mLastItem
+        if (mLastItem == mPagerAdapter.settingsIndex) {
+            // Display settings when returning from deeper setting activities.
+            mCurrentItem = mLastItem
+        }
 
         if (Space.current?.host.isNullOrEmpty()) {
             startActivity(Intent(this, Onboarding23Activity::class.java))
@@ -252,6 +282,12 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        BroadcastManager.unregister(this, mMessageReceiver)
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
@@ -266,7 +302,16 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
+        when (item.itemId) {
+            R.id.menu_delete -> {
+                AlertHelper.show(this, R.string.confirm_remove_media, null, buttons = listOf(
+                    AlertHelper.positiveButton(R.string.remove) { _, _ ->
+                        mCurrentFragment?.deleteSelected()
+                    },
+                    AlertHelper.negativeButton()))
+
+            }
+
             R.id.menu_folders -> {
                 // https://stackoverflow.com/questions/21796209/how-to-create-a-custom-navigation-drawer-in-android
 
@@ -275,11 +320,10 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
                 } else {
                     mBinding.root.openDrawer(mBinding.folderBar)
                 }
-                true
             }
-
-            else -> super.onOptionsItemSelected(item)
         }
+
+        return super.onOptionsItemSelected(item)
     }
 
     fun updateAfterDelete(done: Boolean) {
@@ -316,13 +360,12 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
     private fun refreshProjects(setProjectId: Long? = null) {
         val projects = Space.current?.projects ?: emptyList()
 
+        val project = projects.firstOrNull { it.id == setProjectId } ?: getSelectedProject()
+
         mPagerAdapter.updateData(projects)
 
         mBinding.pager.adapter = mPagerAdapter
-
-        setProjectId?.let {
-            mCurrentItem = mPagerAdapter.getProjectIndexById(it, default = 0)
-        }
+        mCurrentItem = mPagerAdapter.getIndex(project)
 
         mFolderAdapter.update(projects)
 
@@ -333,7 +376,7 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
         val project = getSelectedProject()
 
         if (project != null) {
-            mPagerAdapter.notifyProjectChanged(project)
+            mCurrentFragment?.refresh()
 
             project.space?.setAvatar(mBinding.currentFolderIcon)
             mBinding.currentFolderIcon.show()
@@ -358,7 +401,8 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
             mBinding.currentFolderCount.show()
 
             mBinding.uploadEditButton.toggle(project.isUploading)
-        } else {
+        }
+        else {
             mBinding.currentFolderCount.cloak()
             mBinding.uploadEditButton.hide()
         }
@@ -469,7 +513,8 @@ class MainActivity : BaseActivity(), FolderAdapterListener, SpaceAdapterListener
         if (getSelectedProject() != null) {
             if (typeFiles && Picker.canPickFiles(this)) {
                 Picker.pickFiles(mFilePickerLauncher)
-            } else {
+            }
+            else {
                 pickMedia()
             }
         } else {
