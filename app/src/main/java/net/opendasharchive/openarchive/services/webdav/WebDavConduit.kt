@@ -3,8 +3,8 @@ package net.opendasharchive.openarchive.services.webdav
 import android.content.Context
 import com.thegrizzlylabs.sardineandroid.SardineListener
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
+import net.opendasharchive.openarchive.application.services.Conduit
 import net.opendasharchive.openarchive.db.Media
-import net.opendasharchive.openarchive.services.Conduit
 import net.opendasharchive.openarchive.services.SaveClient
 import okhttp3.HttpUrl
 import java.io.IOException
@@ -30,8 +30,7 @@ class WebDavConduit(media: Media, context: Context) : Conduit(media, context) {
             createFolders(base, path)
 
             uploadMetadata(base, path, fileName)
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
             jobFailed(e)
 
             return false
@@ -64,8 +63,7 @@ class WebDavConduit(media: Media, context: Context) : Conduit(media, context) {
                         return !mCancelled
                     }
                 })
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
             jobFailed(e)
 
             return false
@@ -82,7 +80,11 @@ class WebDavConduit(media: Media, context: Context) : Conduit(media, context) {
     }
 
     @Throws(IOException::class)
-    private suspend fun uploadChunked(base: HttpUrl, path: List<String>, fileName: String): Boolean {
+    private suspend fun uploadChunked(
+        base: HttpUrl,
+        path: List<String>,
+        fileName: String
+    ): Boolean {
         val space = mMedia.space ?: return false
         val url = space.hostUrl ?: return false
 
@@ -163,8 +165,7 @@ class WebDavConduit(media: Media, context: Context) : Conduit(media, context) {
             jobSucceeded()
 
             true
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
             jobFailed(e)
 
             false
@@ -178,7 +179,8 @@ class WebDavConduit(media: Media, context: Context) : Conduit(media, context) {
 
         mClient.put(
             construct(base, path, "$fileName.meta.json"), metadata.toByteArray(),
-            "text/plain", null)
+            "text/plain", null
+        )
 
         /// Upload ProofMode metadata, if enabled and successfully created.
         for (file in getProof()) {
@@ -186,7 +188,8 @@ class WebDavConduit(media: Media, context: Context) : Conduit(media, context) {
 
             mClient.put(
                 construct(base, path, file.name), file, "text/plain",
-                false, null)
+                false, null
+            )
         }
     }
 }

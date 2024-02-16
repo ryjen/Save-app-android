@@ -1,6 +1,7 @@
 ext {
     versions = [
-            glide : '4.16.0',
-            kotlin: '1.9.22',
+            glide  : '4.16.0',
+            kotlin : '1.9.22',
+            compose: '1.6.1'
     ]
 }

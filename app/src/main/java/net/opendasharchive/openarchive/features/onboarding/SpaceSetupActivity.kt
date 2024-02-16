@@ -8,8 +8,8 @@ import net.opendasharchive.openarchive.features.core.BaseActivity
 import net.opendasharchive.openarchive.features.main.MainActivity
 import net.opendasharchive.openarchive.features.settings.SpaceSetupFragment
 import net.opendasharchive.openarchive.features.settings.SpaceSetupSuccessFragment
+import net.opendasharchive.openarchive.presentation.gdrive.GDriveFragment
 import net.opendasharchive.openarchive.services.dropbox.DropboxFragment
-import net.opendasharchive.openarchive.services.gdrive.GDriveFragment
 import net.opendasharchive.openarchive.services.internetarchive.InternetArchiveFragment
 import net.opendasharchive.openarchive.services.internetarchive.Util
 import net.opendasharchive.openarchive.services.webdav.WebDavFragment

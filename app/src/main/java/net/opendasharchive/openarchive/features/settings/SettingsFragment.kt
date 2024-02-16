@@ -10,8 +10,8 @@ import net.opendasharchive.openarchive.R
 import net.opendasharchive.openarchive.databinding.FragmentSettingsBinding
 import net.opendasharchive.openarchive.db.Space
 import net.opendasharchive.openarchive.features.core.BaseActivity
+import net.opendasharchive.openarchive.presentation.gdrive.GDriveActivity
 import net.opendasharchive.openarchive.services.dropbox.DropboxActivity
-import net.opendasharchive.openarchive.services.gdrive.GDriveActivity
 import net.opendasharchive.openarchive.services.internetarchive.InternetArchiveActivity
 import net.opendasharchive.openarchive.services.webdav.WebDavActivity
 import net.opendasharchive.openarchive.util.extensions.Position
@@ -94,8 +94,10 @@ class SettingsFragment : Fragment() {
 
         mBinding.btSpace.text = space.friendlyName
 
-        mBinding.btSpace.setDrawable(space.getAvatar(context)?.scaled(32, context),
-            Position.Start, tint = false)
+        mBinding.btSpace.setDrawable(
+            space.getAvatar(context)?.scaled(32, context),
+            Position.Start, tint = false
+        )
     }
 
     private fun startSpaceAuthActivity() {

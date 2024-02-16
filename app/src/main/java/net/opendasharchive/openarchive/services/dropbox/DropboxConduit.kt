@@ -14,8 +14,8 @@ import com.dropbox.core.v2.files.WriteMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import net.opendasharchive.openarchive.application.services.Conduit
 import net.opendasharchive.openarchive.db.Media
-import net.opendasharchive.openarchive.services.Conduit
 import net.opendasharchive.openarchive.services.SaveClient
 
 class DropboxConduit(media: Media, context: Context) : Conduit(media, context) {

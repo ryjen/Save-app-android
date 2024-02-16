@@ -4,8 +4,8 @@ import android.content.Context
 import android.net.Uri
 import com.google.gson.Gson
 import net.opendasharchive.openarchive.R
+import net.opendasharchive.openarchive.application.services.Conduit
 import net.opendasharchive.openarchive.db.Media
-import net.opendasharchive.openarchive.services.Conduit
 import net.opendasharchive.openarchive.services.SaveClient
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -39,7 +39,8 @@ class IaConduit(media: Media, context: Context) : Conduit(media, context) {
             val slug = getSlug(mMedia.title)
             var basePath = "$slug-${Util.RandomString(4).nextString()}"
             val url = "$ARCHIVE_API_ENDPOINT/$basePath/" + getUploadFileName(mMedia, true)
-            val requestBody = getRequestBody(mMedia, mediaUri, mimeType.toMediaTypeOrNull(), basePath)
+            val requestBody =
+                getRequestBody(mMedia, mediaUri, mimeType.toMediaTypeOrNull(), basePath)
 
             put(url, requestBody, mainHeader())
 
@@ -54,8 +55,7 @@ class IaConduit(media: Media, context: Context) : Conduit(media, context) {
             }
 
             return true
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             jobFailed(e)
         }
 
@@ -94,12 +94,19 @@ class IaConduit(media: Media, context: Context) : Conduit(media, context) {
             "texts".toMediaTypeOrNull()
         )
 
-        put("$ARCHIVE_API_ENDPOINT/$basePath/${uploadFile.name}",
+        put(
+            "$ARCHIVE_API_ENDPOINT/$basePath/${uploadFile.name}",
             requestBody,
-            metadataHeader())
+            metadataHeader()
+        )
     }
 
-    private fun getRequestBody(media: Media, mediaUri: String?, mediaType: MediaType?, basePath: String): RequestBody {
+    private fun getRequestBody(
+        media: Media,
+        mediaUri: String?,
+        mediaType: MediaType?,
+        basePath: String
+    ): RequestBody {
         return RequestBodyUtil.create(
             mContext.contentResolver,
             Uri.parse(mediaUri),
@@ -127,7 +134,11 @@ class IaConduit(media: Media, context: Context) : Conduit(media, context) {
     }
 
     /// request body for meta data
-    private fun getRequestBodyMetaData(media: File, mediaUri: String, mediaType: MediaType?): RequestBody {
+    private fun getRequestBodyMetaData(
+        media: File,
+        mediaUri: String,
+        mediaType: MediaType?
+    ): RequestBody {
         return RequestBodyUtil.create(
             mContext.contentResolver,
             Uri.parse(mediaUri),
@@ -219,7 +230,7 @@ class IaConduit(media: Media, context: Context) : Conduit(media, context) {
     private fun metadataHeader(): Headers {
         return Headers.Builder()
             .add("x-amz-auto-make-bucket", "1")
-            .add("x-archive-meta-language","eng") // FIXME set based on locale or selected
+            .add("x-archive-meta-language", "eng") // FIXME set based on locale or selected
             .add("Authorization", "LOW " + mMedia.space?.username + ":" + mMedia.space?.password)
             .add("x-archive-meta-mediatype", "texts")
             .add("x-archive-meta-collection", "opensource")
@@ -249,8 +260,7 @@ class IaConduit(media: Media, context: Context) : Conduit(media, context) {
                 override fun onResponse(call: Call, response: Response) {
                     if (response.isSuccessful) {
                         jobSucceeded()
-                    }
-                    else {
+                    } else {
                         jobFailed(Exception("${response.code} ${response.message}"))
                     }
                 }

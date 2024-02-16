@@ -6,8 +6,10 @@ import com.facebook.imagepipeline.core.ImagePipelineConfig
 import com.facebook.imagepipeline.decoder.SimpleProgressiveJpegConfig
 import com.orm.SugarApp
 import info.guardianproject.netcipher.proxy.OrbotHelper
+import net.opendasharchive.openarchive.di.dataModule
 import net.opendasharchive.openarchive.util.Prefs
 import net.opendasharchive.openarchive.util.Theme
+import org.koin.core.context.startKoin
 import timber.log.Timber
 
 class SaveApp : SugarApp() {
@@ -19,6 +21,10 @@ class SaveApp : SugarApp() {
 
     override fun onCreate() {
         super.onCreate()
+
+        startKoin {
+            modules(dataModule)
+        }
 
         val config = ImagePipelineConfig.newBuilder(this)
             .setProgressiveJpegConfig(SimpleProgressiveJpegConfig())
@@ -36,13 +42,13 @@ class SaveApp : SugarApp() {
         CleanInsightsManager.init(this)
 
         // enable timber logging library for debug builds
-        if(BuildConfig.DEBUG){
+        if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
     }
 
     private fun initNetCipher() {
-        Timber.d( "Initializing NetCipher client")
+        Timber.d("Initializing NetCipher client")
         val oh = OrbotHelper.get(this)
 
         if (BuildConfig.DEBUG) {

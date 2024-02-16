@@ -20,9 +20,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.opendasharchive.openarchive.CleanInsightsManager
 import net.opendasharchive.openarchive.R
+import net.opendasharchive.openarchive.application.services.Conduit
 import net.opendasharchive.openarchive.db.Media
 import net.opendasharchive.openarchive.features.main.MainActivity
-import net.opendasharchive.openarchive.services.Conduit
 import net.opendasharchive.openarchive.util.Prefs
 import timber.log.Timber
 import java.io.IOException

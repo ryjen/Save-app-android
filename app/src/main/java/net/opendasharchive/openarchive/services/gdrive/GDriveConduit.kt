@@ -19,9 +19,9 @@ import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
 import info.guardianproject.netcipher.proxy.OrbotHelper
 import net.opendasharchive.openarchive.R
+import net.opendasharchive.openarchive.application.services.Conduit
 import net.opendasharchive.openarchive.db.Media
 import net.opendasharchive.openarchive.features.folders.BrowseFoldersViewModel
-import net.opendasharchive.openarchive.services.Conduit
 import net.opendasharchive.openarchive.util.Prefs
 import org.apache.http.conn.ClientConnectionManager
 import org.apache.http.conn.params.ConnManagerParams

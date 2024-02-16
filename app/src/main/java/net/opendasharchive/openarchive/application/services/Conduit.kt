@@ -1,4 +1,4 @@
-package net.opendasharchive.openarchive.services
+package net.opendasharchive.openarchive.application.services
 
 import android.annotation.SuppressLint
 import android.content.Context
