@@ -1,0 +1,3 @@
+- move to domain interface
+- the http, gson, and file references should be in data layer
+- the android context should be in application/di layer
