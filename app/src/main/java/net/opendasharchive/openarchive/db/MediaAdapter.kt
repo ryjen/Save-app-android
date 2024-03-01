@@ -6,7 +6,6 @@ import android.content.Intent
 import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import net.opendasharchive.openarchive.CleanInsightsManager
 import net.opendasharchive.openarchive.R
 import net.opendasharchive.openarchive.features.media.PreviewActivity
 import net.opendasharchive.openarchive.upload.BroadcastManager
@@ -70,10 +69,9 @@ class MediaAdapter(
 
                     Media.Status.Error -> {
                         if (supportedStatuses.contains(Media.Status.Error)) {
-                            //CleanInsightsManager.measureEvent("backend", "upload-error", media[pos].space?.friendlyName)
                             mActivity.get()?.let {
                                 AlertHelper.show(
-                                    it, it.getString(R.string.upload_unsuccessful_description),
+                                    it, media[pos].statusMessage,
                                     R.string.upload_unsuccessful, R.drawable.ic_error, listOf(
                                         AlertHelper.positiveButton(R.string.retry) { _, _ ->
                                             media[pos].sStatus = Media.Status.Queued
